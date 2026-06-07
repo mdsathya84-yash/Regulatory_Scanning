@@ -75,6 +75,19 @@ RISK_RULES = [
 DEFAULT_RISK = ("General Regulatory Risk", "LOW")
 
 
+# Titles that indicate page-level noise rather than regulatory content
+_JUNK_TITLE_FRAGMENTS = [
+    "cookie", "uses cookie", "store information on your device",
+    "page not found", "404", "access denied", "javascript",
+    "please enable", "you are being redirected",
+]
+
+
+def _is_junk_title(title: str) -> bool:
+    low = title.lower().strip()
+    return not low or any(frag in low for frag in _JUNK_TITLE_FRAGMENTS)
+
+
 def _make_id(source: str, title: str) -> str:
     return hashlib.sha256(f"{source}::{title}".encode()).hexdigest()[:16]
 
@@ -208,6 +221,8 @@ def load_ec_commission(db_path: str) -> int:
             url   = row.get("url", "").strip()
             if not title or not url:
                 continue
+            if _is_junk_title(title):
+                continue
             if rtype not in target_types:
                 continue
 
@@ -255,7 +270,7 @@ def load_ofcom_calendar(db_path: str) -> int:
     with _conn(db_path) as conn:
         for row in rows:
             title = (row.get("content") or row.get("regulation") or "").strip()
-            if not title:
+            if not title or _is_junk_title(title):
                 continue
 
             url  = row.get("regulation_url", "").strip()
@@ -323,7 +338,9 @@ def load_chroma_docs(db_path: str) -> int:
             pub_date = _clean_date(meta.get("publication_date", ""))
             dtype    = meta.get("document_type", "Unknown").strip()
 
-            if not title or source in ("European Commission",):
+            if not title or _is_junk_title(title):
+                continue
+            if source in ("European Commission",):
                 continue  # skip EC (already loaded from CSV)
 
             text_for_mapping = f"{title} {dtype} {doc}"[:600]
