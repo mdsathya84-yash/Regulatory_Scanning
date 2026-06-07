@@ -24,16 +24,15 @@ st.set_page_config(
 )
 
 # ── explicit navigation — only listed pages appear in the sidebar ─────────────
-_dir = os.path.join(os.path.dirname(__file__), "pages")
-
+# st.Page paths are relative to the CWD where streamlit is launched (d:\regulatory-scanner)
 pg = st.navigation(
     {
         "RegScan": [
-            st.Page(os.path.join(_dir, "00_home.py"),     title="Home",     icon="🏠"),
+            st.Page("ui/pages/00_home.py",     title="Home",     icon="🏠"),
         ],
         "Tools": [
-            st.Page(os.path.join(_dir, "01_chatbot.py"),  title="Chatbot",  icon="💬"),
-            st.Page(os.path.join(_dir, "02_register.py"), title="Register", icon="📋"),
+            st.Page("ui/pages/01_chatbot.py",  title="Chatbot",  icon="💬"),
+            st.Page("ui/pages/02_register.py", title="Register", icon="📋"),
         ],
     },
     position="sidebar",
