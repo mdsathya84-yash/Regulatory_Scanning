@@ -12,47 +12,64 @@ _httpx.AsyncClient.__init__ = _async_no_verify
 warnings.filterwarnings("ignore")
 
 import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 
 st.set_page_config(
     page_title="RegScan — Regulatory Intelligence",
-    page_icon="⚖",
+    page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── explicit navigation — only listed pages appear in the sidebar ─────────────
-# st.Page paths are relative to the CWD where streamlit is launched (d:\regulatory-scanner)
+# Resolve pages directory relative to this file — works regardless of CWD
+_pages = Path(__file__).resolve().parent / "pages"
+
 pg = st.navigation(
     {
         "RegScan": [
-            st.Page("ui/pages/00_home.py",     title="Home",     icon="🏠"),
+            st.Page(str(_pages / "00_home.py"),     title="Home",     icon="🏠"),
         ],
         "Tools": [
-            st.Page("ui/pages/01_chatbot.py",  title="Chatbot",  icon="💬"),
-            st.Page("ui/pages/02_register.py", title="Register", icon="📋"),
+            st.Page(str(_pages / "01_chatbot.py"),  title="Chatbot",  icon="💬"),
+            st.Page(str(_pages / "02_register.py"), title="Register", icon="📋"),
         ],
     },
     position="sidebar",
 )
 
-# ── sidebar stats (shown on every page) ───────────────────────────────────────
-st.sidebar.title("RegScan")
-st.sidebar.caption("AI-Powered Regulatory Intelligence")
-st.sidebar.divider()
+# ── sidebar — shown on every page ─────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("## ⚖️ RegScan")
+    st.caption("AI-Powered Regulatory Intelligence")
+    st.divider()
 
-try:
-    from ingestion.vector_store import RegulatoryVectorStore
-    vs = RegulatoryVectorStore()
-    recent = vs.list_recent(days=180)
-    st.sidebar.metric("Regulations (6 months)", len(recent))
-    st.sidebar.metric("Total indexed chunks", vs.count())
-except Exception:
-    st.sidebar.info("Vector store not initialised yet.")
+    try:
+        from ingestion.vector_store import RegulatoryVectorStore
+        from register.obligation_register import ObligationRegister
 
-st.sidebar.metric("Jurisdictions Covered", 2)
-st.sidebar.markdown("**Sources:** NCSC · EEAS · Ofcom · EC")
+        vs    = RegulatoryVectorStore()
+        reg   = ObligationRegister()
+        stats = reg.stats()
+
+        col_a, col_b = st.columns(2)
+        col_a.metric("📄 Chunks",       f"{vs.count():,}")
+        col_b.metric("📋 Obligations",  f"{stats['total']:,}")
+
+        col_c, col_d = st.columns(2)
+        col_c.metric("🔴 High Risk",    stats.get("by_risk", {}).get("HIGH", 0))
+        col_d.metric("🌍 EU / 🇬🇧 UK",
+                     f"{stats['by_jurisdiction'].get('EU',0)} / {stats['by_jurisdiction'].get('UK',0)}")
+    except Exception:
+        st.info("Vector store not initialised yet.")
+
+    st.divider()
+    st.markdown(
+        "**Sources monitored**\n\n"
+        "🇬🇧 NCSC &nbsp;·&nbsp; 🇬🇧 Ofcom\n\n"
+        "🇪🇺 EEAS &nbsp;·&nbsp; 🇪🇺 EC Commission"
+    )
 
 pg.run()
