@@ -51,8 +51,6 @@ st.markdown(
     |------|-------------|
     | **Chatbot** | Ask natural-language regulatory questions backed by RAG |
     | **Register** | Browse and search the live Compliance Obligation Register |
-    | **Alerts** | View alert history and configure notification settings |
-    | **Jurisdictions** | Multi-jurisdictional impact map |
 
     ### Quick Start
     1. Set your `OPENAI_API_KEY` in `.env`
