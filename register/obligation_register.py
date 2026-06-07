@@ -73,8 +73,10 @@ class ObligationRegister:
         self,
         jurisdiction: Optional[str] = None,
         business_unit: Optional[str] = None,
-        status: str = "ACTIVE",
+        status: Optional[str] = "ACTIVE",
         keyword: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        regulation_type: Optional[str] = None,
     ) -> List[Dict]:
         sql = "SELECT * FROM compliance_obligations WHERE 1=1"
         params = []
@@ -86,13 +88,19 @@ class ObligationRegister:
             sql += " AND jurisdiction = ?"
             params.append(jurisdiction)
         if business_unit:
-            sql += " AND business_unit = ?"
-            params.append(business_unit)
+            sql += " AND business_unit LIKE ?"
+            params.append(f"%{business_unit}%")
+        if risk_level:
+            sql += " AND risk_level = ?"
+            params.append(risk_level)
+        if regulation_type:
+            sql += " AND (regulation_type = ? OR document_type = ?)"
+            params.extend([regulation_type, regulation_type])
         if keyword:
-            sql += " AND (title LIKE ? OR description LIKE ? OR tags LIKE ?)"
-            params.extend([f"%{keyword}%"] * 3)
+            sql += " AND (title LIKE ? OR description LIKE ? OR tags LIKE ? OR business_unit LIKE ?)"
+            params.extend([f"%{keyword}%"] * 4)
 
-        sql += " ORDER BY effective_date DESC"
+        sql += " ORDER BY effective_date DESC NULLS LAST, title ASC"
 
         with self._conn() as conn:
             rows = conn.execute(sql, params).fetchall()
@@ -126,4 +134,21 @@ class ObligationRegister:
                     "SELECT status, COUNT(*) FROM compliance_obligations GROUP BY status"
                 ).fetchall()
             )
-        return {"total": total, "by_jurisdiction": by_jurisdiction, "by_status": by_status}
+            by_risk = dict(
+                conn.execute(
+                    "SELECT risk_level, COUNT(*) FROM compliance_obligations GROUP BY risk_level"
+                ).fetchall()
+            )
+            by_type = dict(
+                conn.execute(
+                    "SELECT regulation_type, COUNT(*) FROM compliance_obligations "
+                    "WHERE regulation_type IS NOT NULL GROUP BY regulation_type ORDER BY COUNT(*) DESC LIMIT 10"
+                ).fetchall()
+            )
+        return {
+            "total": total,
+            "by_jurisdiction": by_jurisdiction,
+            "by_status": by_status,
+            "by_risk": by_risk,
+            "by_type": by_type,
+        }
