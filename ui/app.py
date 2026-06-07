@@ -9,7 +9,10 @@ def _client_no_verify(self, *a, **kw):  kw.setdefault("verify", False); _orig_cl
 def _async_no_verify(self, *a, **kw):   kw.setdefault("verify", False); _orig_async_init(self, *a, **kw)
 _httpx.Client.__init__      = _client_no_verify
 _httpx.AsyncClient.__init__ = _async_no_verify
-warnings.filterwarnings("ignore", message=".*verify.*")
+warnings.filterwarnings("ignore")
+
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 
@@ -20,44 +23,37 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── explicit navigation — only listed pages appear in the sidebar ─────────────
+_dir = os.path.join(os.path.dirname(__file__), "pages")
+
+pg = st.navigation(
+    {
+        "RegScan": [
+            st.Page(os.path.join(_dir, "00_home.py"),     title="Home",     icon="🏠"),
+        ],
+        "Tools": [
+            st.Page(os.path.join(_dir, "01_chatbot.py"),  title="Chatbot",  icon="💬"),
+            st.Page(os.path.join(_dir, "02_register.py"), title="Register", icon="📋"),
+        ],
+    },
+    position="sidebar",
+)
+
+# ── sidebar stats (shown on every page) ───────────────────────────────────────
 st.sidebar.title("RegScan")
 st.sidebar.caption("AI-Powered Regulatory Intelligence")
 st.sidebar.divider()
 
-# Quick stats
 try:
-    import sys, os
-    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
     from ingestion.vector_store import RegulatoryVectorStore
     vs = RegulatoryVectorStore()
     recent = vs.list_recent(days=180)
-    total_chunks = vs.count()
     st.sidebar.metric("Regulations (6 months)", len(recent))
-    st.sidebar.metric("Total indexed chunks", total_chunks)
+    st.sidebar.metric("Total indexed chunks", vs.count())
 except Exception:
-    st.sidebar.info("Vector store not yet initialised. Run the scraper first.")
+    st.sidebar.info("Vector store not initialised yet.")
 
-st.sidebar.metric("Jurisdictions Covered", 4)
-st.sidebar.markdown("**Sources:** NCSC · EEAS · Ofcom")
+st.sidebar.metric("Jurisdictions Covered", 2)
+st.sidebar.markdown("**Sources:** NCSC · EEAS · Ofcom · EC")
 
-# Landing page
-st.title("RegScan — AI Regulatory Intelligence Platform")
-st.markdown(
-    """
-    Welcome to **RegScan**, an AI-powered regulatory monitoring and Q&A system.
-
-    ### Features
-    | Page | Description |
-    |------|-------------|
-    | **Chatbot** | Ask natural-language regulatory questions backed by RAG |
-    | **Register** | Browse and search the live Compliance Obligation Register |
-
-    ### Quick Start
-    1. Set your `OPENAI_API_KEY` in `.env`
-    2. Run `python -m scraper.scheduler` to populate the vector store
-    3. Navigate to the **Chatbot** page to start querying
-
-    ---
-    *Monitoring: NCSC (UK) · EEAS (EU Sanctions) · Ofcom (UK)*
-    """
-)
+pg.run()
