@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.ofcom.org.uk)",
+      "PowerShell(cd \"d:\\\\regulatory-scanner\"; $env:PYTHONIOENCODING=\"utf-8\"; .\\\\venv\\\\Scripts\\\\python -m scraper.ofcom_stats_calendar 2>&1)",
+      "PowerShell(cd \"d:\\\\regulatory-scanner\"; $env:PYTHONIOENCODING=\"utf-8\"; .\\\\venv\\\\Scripts\\\\python -m scraper.ofcom_full_crawl 2>&1)"
+    ]
+  }
+}
