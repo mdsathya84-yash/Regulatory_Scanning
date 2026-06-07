@@ -21,11 +21,12 @@ class RegulatoryVectorStore:
 
     COLLECTION_NAME = "regulatory_documents"
 
-    def __init__(self, persist_dir: str = None):
+    def __init__(self, persist_dir: str = None, collection_name: str = None):
         persist_dir = persist_dir or os.getenv("CHROMA_DB_PATH", "./data/chroma_db")
         self.client = chromadb.PersistentClient(path=persist_dir)
+        name = collection_name or self.COLLECTION_NAME
         self.collection = self.client.get_or_create_collection(
-            name=self.COLLECTION_NAME,
+            name=name,
             embedding_function=_LOCAL_EF,
             metadata={"hnsw:space": "cosine"},
         )
@@ -104,3 +105,35 @@ class RegulatoryVectorStore:
         """Remove all chunks belonging to a specific document."""
         self.collection.delete(where={"doc_id": {"$eq": doc_id}})
         logger.info(f"Deleted all chunks for doc_id={doc_id}")
+
+
+def multi_collection_search(
+    query: str,
+    collections: list[str],
+    n_results: int = 8,
+    persist_dir: str = None,
+    jurisdiction_filter: str = None,
+) -> list[dict]:
+    """Search multiple ChromaDB collections and return top-N merged results."""
+    persist_dir = persist_dir or os.getenv("CHROMA_DB_PATH", "./data/chroma_db")
+    all_chunks = []
+    for cname in collections:
+        try:
+            vs = RegulatoryVectorStore(persist_dir=persist_dir, collection_name=cname)
+            chunks = vs.semantic_search(
+                query=query,
+                n_results=n_results,
+                jurisdiction_filter=jurisdiction_filter,
+            )
+            all_chunks.extend(chunks)
+        except Exception as e:
+            logger.warning("Could not search collection %s: %s", cname, e)
+    # Sort by relevance and de-duplicate by url
+    seen_urls = set()
+    unique = []
+    for chunk in sorted(all_chunks, key=lambda c: c["relevance_score"], reverse=True):
+        url = chunk["metadata"].get("source_url", "")
+        if url not in seen_urls:
+            seen_urls.add(url)
+            unique.append(chunk)
+    return unique[:n_results]
