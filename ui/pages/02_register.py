@@ -109,11 +109,16 @@ if obligations:
         "risk":            "Risk Level",
         "risks":           "Associated Risks",
         "source_name":     "Source",
+        "source_url":      "URL",
     }
 
     # Only use columns that exist
     cols_present = [c for c in display_cols if c in df.columns]
     display_df = df[cols_present].rename(columns=display_cols)
+
+    # Ensure URL column has clean string values
+    if "URL" in display_df.columns:
+        display_df["URL"] = display_df["URL"].fillna("").astype(str)
 
     # Style risk level cells
     def _style_risk(val):
@@ -125,8 +130,24 @@ if obligations:
             return "background-color:#e8f5e9"
         return ""
 
-    styled = display_df.style.applymap(_style_risk, subset=["Risk Level"])
-    st.dataframe(styled, use_container_width=True, hide_index=True, height=500)
+    risk_subset = ["Risk Level"] if "Risk Level" in display_df.columns else []
+    styled = display_df.style.applymap(_style_risk, subset=risk_subset)
+
+    col_config = {}
+    if "URL" in display_df.columns:
+        col_config["URL"] = st.column_config.LinkColumn(
+            "URL",
+            display_text="Open ↗",
+            help="Click to open the source regulation page",
+        )
+
+    st.dataframe(
+        styled,
+        use_container_width=True,
+        hide_index=True,
+        height=500,
+        column_config=col_config,
+    )
 
     # Export
     export_cols = [
