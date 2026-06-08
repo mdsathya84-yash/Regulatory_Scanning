@@ -6,6 +6,66 @@ import streamlit as st
 st.markdown(
     """
     <style>
+    .metric-card {
+        background: #f8f9fb;
+        border: 1px solid #e0e4ea;
+        border-radius: 8px;
+        padding: 14px 16px 10px;
+        text-align: left;
+        height: 90px;
+    }
+    .metric-card .label {
+        font-size: 0.78em;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    .metric-card .value {
+        font-size: 1.9em;
+        font-weight: 700;
+        color: #1a1a2e;
+        line-height: 1.1;
+    }
+    .clickable-card {
+        background: #eef4ff;
+        border: 1px solid #aac4f5;
+        border-radius: 8px;
+        padding: 10px 16px 4px;
+        text-align: left;
+        height: 90px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .clickable-card:hover { background: #dce8ff; }
+    .clickable-card .label {
+        font-size: 0.78em;
+        color: #1565c0;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    .clickable-card .value {
+        font-size: 1.9em;
+        font-weight: 700;
+        color: #1565c0;
+        line-height: 1.1;
+    }
+    .clickable-card .hint {
+        font-size: 0.7em;
+        color: #1976d2;
+        margin-top: 2px;
+    }
+    /* shrink the button so it fits inside the card area */
+    div[data-testid="stButton"] > button {
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        color: #1565c0 !important;
+        font-size: 0.72em !important;
+        font-weight: 600 !important;
+        text-decoration: underline !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
     .source-card {
         background: #f8f9fb;
         border: 1px solid #e0e4ea;
@@ -46,12 +106,31 @@ try:
     stats = reg.stats()
     recent = vs.list_recent(days=180)
 
+    from datetime import datetime, timedelta
+    cutoff     = (datetime.utcnow() - timedelta(days=180)).strftime("%Y-%m-%d")
+    new_obs    = reg.search(date_from=cutoff, status=None)
+    new_count  = len(new_obs)
+
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("📄 Indexed Chunks",      f"{vs.count():,}")
-    c2.metric("📋 Obligations",         f"{stats['total']:,}")
-    c3.metric("🔴 High Risk Items",     stats.get('by_risk', {}).get('HIGH', 0))
-    c4.metric("🕐 New (6 months)",      len(recent))
-    c5.metric("🌍 Jurisdictions",       len(stats.get('by_jurisdiction', {})))
+    c1.metric("📄 Indexed Chunks",  f"{vs.count():,}")
+    c2.metric("📋 Obligations",     f"{stats['total']:,}")
+    c3.metric("🔴 High Risk Items", stats.get('by_risk', {}).get('HIGH', 0))
+    c5.metric("🌍 Jurisdictions",   len(stats.get('by_jurisdiction', {})))
+
+    # Clickable "New (6 months)" card in c4
+    with c4:
+        st.markdown(
+            f"""<div class="clickable-card">
+              <div class="label">🕐 New Obligations (6 months)</div>
+              <div class="value">{new_count}</div>
+              <div class="hint">Click below to view →</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        if st.button("View new obligations", key="btn_new_obs"):
+            st.session_state["register_date_from"] = cutoff
+            st.session_state["register_banner"]    = f"Showing {new_count} new obligations published since {cutoff}"
+            st.switch_page("ui/pages/02_register.py")
 except Exception:
     st.info("Run the scraper pipeline to populate data.")
 

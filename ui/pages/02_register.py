@@ -7,8 +7,19 @@ import pandas as pd
 import json
 from register.obligation_register import ObligationRegister
 
-st.title("Compliance Obligation Register")
+st.title("📋 Compliance Obligation Register")
 st.caption("Regulations from European Commission, Ofcom and EEAS — mapped to business unit, risk level, and jurisdiction.")
+
+# ── pick up deep-link filter from Home page ───────────────────────────────────
+_date_from   = st.session_state.pop("register_date_from", None)
+_banner_msg  = st.session_state.pop("register_banner",    None)
+
+if _banner_msg:
+    col_banner, col_clear = st.columns([5, 1])
+    col_banner.info(f"🕐 {_banner_msg}")
+    if col_clear.button("✕ Clear filter", key="clear_recent"):
+        _date_from = None
+        st.rerun()
 
 # ── filters ──────────────────────────────────────────────────────────────────
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -47,11 +58,12 @@ with col5:
 
 register = ObligationRegister()
 
-# ── pull data ────────────────────────────────────────────────────────────────
+# ── pull data (date_from injected from Home if navigated via the metric) ──────
 obligations = register.search(
     jurisdiction=None if jurisdiction == "All" else jurisdiction,
     status=None,
     keyword=keyword or None,
+    date_from=_date_from,
 )
 
 if risk_filter != "All":

@@ -77,6 +77,7 @@ class ObligationRegister:
         keyword: Optional[str] = None,
         risk_level: Optional[str] = None,
         regulation_type: Optional[str] = None,
+        date_from: Optional[str] = None,   # YYYY-MM-DD — only obligations on/after this date
     ) -> List[Dict]:
         sql = "SELECT * FROM compliance_obligations WHERE 1=1"
         params = []
@@ -96,6 +97,9 @@ class ObligationRegister:
         if regulation_type:
             sql += " AND (regulation_type = ? OR document_type = ?)"
             params.extend([regulation_type, regulation_type])
+        if date_from:
+            sql += " AND effective_date >= ?"
+            params.append(date_from)
         if keyword:
             sql += " AND (title LIKE ? OR description LIKE ? OR tags LIKE ? OR business_unit LIKE ?)"
             params.extend([f"%{keyword}%"] * 4)
