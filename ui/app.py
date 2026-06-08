@@ -13,7 +13,19 @@ warnings.filterwarnings("ignore")
 
 import os, sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+_root = Path(__file__).resolve().parent.parent   # d:\regulatory-scanner
+sys.path.insert(0, str(_root))
+
+# Resolve data paths to absolute so pages work regardless of launch CWD
+def _abs(env_key: str, rel_default: str) -> str:
+    val = os.environ.get(env_key, "")
+    if not val or not os.path.isabs(val):
+        return str(_root / rel_default)
+    return val
+
+os.environ["CHROMA_DB_PATH"]    = _abs("CHROMA_DB_PATH",    "data/chroma_db")
+os.environ["REGISTER_DB_PATH"]  = _abs("REGISTER_DB_PATH",  "data/compliance_register.db")
 
 import streamlit as st
 

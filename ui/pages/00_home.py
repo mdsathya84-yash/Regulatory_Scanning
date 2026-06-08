@@ -131,8 +131,8 @@ try:
             st.session_state["register_date_from"] = cutoff
             st.session_state["register_banner"]    = f"Showing {new_count} new obligations published since {cutoff}"
             st.switch_page("ui/pages/02_register.py")
-except Exception:
-    st.info("Run the scraper pipeline to populate data.")
+except Exception as _e:
+    st.warning(f"Could not load data: {_e}")
 
 st.divider()
 
