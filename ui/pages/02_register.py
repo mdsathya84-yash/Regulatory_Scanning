@@ -121,15 +121,6 @@ if obligations:
     cols_present = [c for c in display_cols if c in df.columns]
     display_df   = df[cols_present].rename(columns=display_cols)
 
-    def _style_risk(val):
-        if "HIGH"   in str(val): return "background-color:#ffe0e0;font-weight:bold"
-        if "MEDIUM" in str(val): return "background-color:#fff8e0"
-        if "LOW"    in str(val): return "background-color:#e8f5e9"
-        return ""
-
-    risk_subset = ["Risk Level"] if "Risk Level" in display_df.columns else []
-    styled = display_df.style.applymap(_style_risk, subset=risk_subset)
-
     # Explicit column widths — total intentionally exceeds viewport to force H-scroll
     col_config = {
         "Regulation Title":       st.column_config.TextColumn(width="large"),
@@ -152,7 +143,7 @@ if obligations:
     # height drives vertical scroll; column widths + use_container_width=False
     # keeps the native horizontal scrollbar visible
     _selection = st.dataframe(
-        styled,
+        display_df,
         use_container_width=False,
         width=1400,
         hide_index=True,
@@ -178,7 +169,10 @@ if obligations:
     # ── obligation detail (auto-driven by row click) ──────────────────────────
     st.subheader("Obligation Detail")
 
-    _selected_rows = _selection.selection.rows if _selection and _selection.selection else []
+    try:
+        _selected_rows = _selection.selection.rows or []
+    except Exception:
+        _selected_rows = []
     if not _selected_rows:
         st.caption("Click any row in the table above to view its full details.")
     else:
