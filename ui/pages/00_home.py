@@ -123,14 +123,13 @@ try:
             f"""<div class="clickable-card">
               <div class="label">🕐 New Obligations (6 months)</div>
               <div class="value">{new_count}</div>
-              <div class="hint">Click below to view →</div>
             </div>""",
             unsafe_allow_html=True,
         )
-        if st.button("View new obligations", key="btn_new_obs"):
+        if st.button("View new obligations →", key="btn_new_obs"):
             st.session_state["register_date_from"] = cutoff
             st.session_state["register_banner"]    = f"Showing {new_count} new obligations published since {cutoff}"
-            st.switch_page("ui/pages/02_register.py")
+            st.switch_page("pages/02_register.py")
 except Exception as _e:
     st.warning(f"Could not load data: {_e}")
 
