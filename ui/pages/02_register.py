@@ -10,9 +10,10 @@ from register.obligation_register import ObligationRegister
 st.title("📋 Compliance Obligation Register")
 st.caption("Regulations from European Commission, Ofcom and EEAS — mapped to business unit, risk level, and jurisdiction.")
 
-# ── pick up deep-link filter from Home page ───────────────────────────────────
-_date_from   = st.session_state.pop("register_date_from", None)
-_banner_msg  = st.session_state.pop("register_banner",    None)
+# ── pick up deep-link filters from Home page ─────────────────────────────────
+_date_from    = st.session_state.pop("register_date_from",  None)
+_risk_preset  = st.session_state.pop("register_risk_filter", None)
+_banner_msg   = st.session_state.pop("register_banner",     None)
 
 if _banner_msg:
     col_banner, col_clear = st.columns([5, 1])
@@ -26,7 +27,9 @@ col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     jurisdiction = st.selectbox("Jurisdiction", ["All", "EU", "UK"])
 with col2:
-    risk_filter = st.selectbox("Risk Level", ["All", "HIGH", "MEDIUM", "LOW"])
+    _risk_opts  = ["All", "HIGH", "MEDIUM", "LOW"]
+    _risk_idx   = _risk_opts.index(_risk_preset) if _risk_preset in _risk_opts else 0
+    risk_filter = st.selectbox("Risk Level", _risk_opts, index=_risk_idx)
 with col3:
     reg_type_opts = [
         "All", "Regulation", "Directive", "Decision", "Recommendation",

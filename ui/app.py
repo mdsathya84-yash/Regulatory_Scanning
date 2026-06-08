@@ -30,8 +30,8 @@ os.environ["REGISTER_DB_PATH"]  = _abs("REGISTER_DB_PATH",  "data/compliance_reg
 import streamlit as st
 
 st.set_page_config(
-    page_title="RegScan — Regulatory Intelligence",
-    page_icon="⚖️",
+    page_title="Horizon Scan — Regulatory Intelligence",
+    page_icon="🔭",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -41,7 +41,7 @@ _pages = Path(__file__).resolve().parent / "pages"
 
 pg = st.navigation(
     {
-        "RegScan": [
+        "Horizon Scan": [
             st.Page(str(_pages / "00_home.py"),     title="Home",     icon="🏠"),
         ],
         "Tools": [
@@ -54,7 +54,7 @@ pg = st.navigation(
 
 # ── sidebar — shown on every page ─────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## ⚖️ RegScan")
+    st.markdown("## 🔭 Horizon Scan")
     st.caption("AI-Powered Regulatory Intelligence")
     st.divider()
 

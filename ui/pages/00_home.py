@@ -49,10 +49,27 @@ st.markdown(
         color: #1565c0;
         line-height: 1.1;
     }
-    .clickable-card .hint {
-        font-size: 0.7em;
-        color: #1976d2;
-        margin-top: 2px;
+    .clickable-card-red {
+        background: #fff0f0;
+        border: 1px solid #f5a0a0;
+        border-radius: 8px;
+        padding: 10px 16px 4px;
+        text-align: left;
+        height: 90px;
+        cursor: pointer;
+    }
+    .clickable-card-red:hover { background: #ffe0e0; }
+    .clickable-card-red .label {
+        font-size: 0.78em;
+        color: #c62828;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    .clickable-card-red .value {
+        font-size: 1.9em;
+        font-weight: 700;
+        color: #c62828;
+        line-height: 1.1;
     }
     /* shrink the button so it fits inside the card area */
     div[data-testid="stButton"] > button {
@@ -92,7 +109,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("⚖️ RegScan — Regulatory Intelligence")
+st.title("🔭 Horizon Scan — Regulatory Intelligence")
 st.markdown("*AI-powered monitoring across UK and EU regulatory sources*")
 st.divider()
 
@@ -113,8 +130,33 @@ try:
 
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("📄 Indexed Chunks",  f"{vs.count():,}")
-    c2.metric("📋 Obligations",     f"{stats['total']:,}")
-    c3.metric("🔴 High Risk Items", stats.get('by_risk', {}).get('HIGH', 0))
+
+    with c2:
+        st.markdown(
+            f"""<div class="clickable-card">
+              <div class="label">📋 Obligations</div>
+              <div class="value">{stats['total']:,}</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        if st.button("View all obligations →", key="btn_all_obs"):
+            st.session_state["register_banner"] = f"Showing all {stats['total']:,} obligations"
+            st.switch_page("pages/02_register.py")
+
+    with c3:
+        high_risk_count = stats.get('by_risk', {}).get('HIGH', 0)
+        st.markdown(
+            f"""<div class="clickable-card-red">
+              <div class="label">🔴 High Risk Items</div>
+              <div class="value">{high_risk_count}</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        if st.button("View high risk →", key="btn_high_risk"):
+            st.session_state["register_risk_filter"] = "HIGH"
+            st.session_state["register_banner"]      = f"Showing {high_risk_count} HIGH risk obligations"
+            st.switch_page("pages/02_register.py")
+
     c5.metric("🌍 Jurisdictions",   len(stats.get('by_jurisdiction', {})))
 
     # Clickable "New (6 months)" card in c4
@@ -198,4 +240,4 @@ with right:
         st.info("No data yet.")
 
 st.divider()
-st.caption("RegScan · Built with Streamlit · Sources: NCSC, Ofcom, EEAS, European Commission")
+st.caption("Horizon Scan · Built with Streamlit · Sources: NCSC, Ofcom, EEAS, European Commission")
