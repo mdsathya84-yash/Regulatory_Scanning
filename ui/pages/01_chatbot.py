@@ -32,7 +32,7 @@ st.caption("Ask anything about EU and UK regulations, sanctions, directives, and
 # ── collection map ────────────────────────────────────────────────────────────
 SOURCES = {
     "🔍 All Sources":           ["regulatory_documents", "ec_regulations", "ofcom_links"],
-    "🇬🇧 NCSC / EEAS / Ofcom":  ["regulatory_documents", "ofcom_links"],
+    "🇬🇧 EEAS / Ofcom":          ["regulatory_documents", "ofcom_links"],
     "🇪🇺 EC Commission":         ["ec_regulations"],
 }
 
@@ -47,7 +47,7 @@ SAMPLE_QUESTIONS = {
     "🔒 Cybersecurity": [
         "What cybersecurity obligations apply to telecom operators?",
         "What does NIS2 require from critical infrastructure operators?",
-        "What are the latest NCSC cybersecurity advisories?",
+        "What cybersecurity frameworks apply to UK critical infrastructure?",
         "How does the EU Cyber Resilience Act affect product manufacturers?",
     ],
     "⚠️ Sanctions": [
@@ -96,7 +96,7 @@ with st.sidebar:
         persist_dir = os.getenv("CHROMA_DB_PATH", "./data/chroma_db")
         st.markdown("**📊 Index Stats**")
         for cname, label in [
-            ("regulatory_documents", "🇬🇧 NCSC/EEAS/Ofcom"),
+            ("regulatory_documents", "🇬🇧 EEAS/Ofcom"),
             ("ec_regulations",       "🇪🇺 EC Commission"),
             ("ofcom_links",          "📡 Ofcom Links"),
         ]:

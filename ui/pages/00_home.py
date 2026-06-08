@@ -195,7 +195,6 @@ with left:
     st.markdown("### 🗂️ Data Sources")
 
     sources = [
-        ("🇬🇧", "NCSC", "UK", "Cyber guidance, advisories, and threat intelligence"),
         ("🇬🇧", "Ofcom", "UK", "Telecoms, broadcasting, and online safety regulations + 2026 statistical calendar"),
         ("🇪🇺", "EEAS", "EU", "Sanctions, restrictive measures, and foreign policy instruments"),
         ("🇪🇺", "European Commission", "EU", "Regulations, Directives, Decisions, Policies across all DGs"),
@@ -240,4 +239,4 @@ with right:
         st.info("No data yet.")
 
 st.divider()
-st.caption("Horizon Scan · Built with Streamlit · Sources: NCSC, Ofcom, EEAS, European Commission")
+st.caption("Horizon Scan · Built with Streamlit · Sources: Ofcom, EEAS, European Commission")

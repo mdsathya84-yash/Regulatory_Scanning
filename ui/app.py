@@ -80,7 +80,7 @@ with st.sidebar:
     st.divider()
     st.markdown(
         "**Sources monitored**\n\n"
-        "🇬🇧 NCSC &nbsp;·&nbsp; 🇬🇧 Ofcom\n\n"
+        "🇬🇧 Ofcom\n\n"
         "🇪🇺 EEAS &nbsp;·&nbsp; 🇪🇺 EC Commission"
     )
 
