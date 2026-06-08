@@ -151,13 +151,15 @@ if obligations:
 
     # height drives vertical scroll; column widths + use_container_width=False
     # keeps the native horizontal scrollbar visible
-    st.dataframe(
+    _selection = st.dataframe(
         styled,
         use_container_width=False,
         width=1400,
         hide_index=True,
         height=480,
         column_config=col_config,
+        on_select="rerun",
+        selection_mode="single-row",
     )
 
     export_cols = [
@@ -173,13 +175,14 @@ if obligations:
 
     st.divider()
 
-    # ── obligation detail (scrollable HTML panel) ─────────────────────────────
+    # ── obligation detail (auto-driven by row click) ──────────────────────────
     st.subheader("Obligation Detail")
-    titles   = [o["title"] for o in obligations]
-    selected = st.selectbox("Select a regulation to inspect", ["—"] + titles)
 
-    if selected != "—":
-        ob = next((o for o in obligations if o["title"] == selected), None)
+    _selected_rows = _selection.selection.rows if _selection and _selection.selection else []
+    if not _selected_rows:
+        st.caption("Click any row in the table above to view its full details.")
+    else:
+        ob = obligations[_selected_rows[0]] if _selected_rows[0] < len(obligations) else None
         if ob:
             risks_parsed = []
             try:
